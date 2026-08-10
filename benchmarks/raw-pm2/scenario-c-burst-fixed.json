@@ -1,0 +1,23 @@
+{
+  "totalRequests": 200,
+  "succeeded": 200,
+  "failed": 0,
+  "wallClockMs": 16993,
+  "latencyMs": {
+    "p50": 8673,
+    "p95": 16331,
+    "p99": 16933,
+    "max": 16938
+  },
+  "queuedMs": {
+    "p50": 6636,
+    "p95": 14285,
+    "p99": 14876,
+    "max": 14878
+  },
+  "queuedCount": 168,
+  "byBackend": {
+    "vllm-1": 116,
+    "vllm-0": 84
+  }
+}

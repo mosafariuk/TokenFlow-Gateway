@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" font-family="SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace" font-size="13.5">
+  <!-- terminal window -->
+  <rect x="0" y="0" width="800" height="500" rx="10" fill="#0d1117"/>
+  <rect x="0" y="0" width="800" height="36" rx="10" fill="#161b22"/>
+  <rect x="0" y="18" width="800" height="18" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f57"/>
+  <circle cx="42" cy="18" r="6" fill="#febc2e"/>
+  <circle cx="62" cy="18" r="6" fill="#28c840"/>
+  <text x="400" y="23" text-anchor="middle" fill="#8b949e" font-size="12">tokenflow-gateway — demo</text>
+
+  <g fill="#c9d1d9">
+    <text x="24" y="68"><tspan fill="#3fb950">$</tspan> curl tokenflow:8080/v1/chat/completions \</text>
+    <text x="24" y="90">    -d '{"messages":[…], "max_tokens":64, "temperature":0}'</text>
+    <text x="24" y="112" fill="#8b949e">HTTP/1.1 200 OK</text>
+    <text x="24" y="134"><tspan fill="#58a6ff">x-backend:</tspan> vllm-1        <tspan fill="#d29922"># routed to the backend with the most free KV-cache</tspan></text>
+    <text x="24" y="156"><tspan fill="#58a6ff">x-queued-ms:</tspan> 0</text>
+
+    <text x="24" y="200"><tspan fill="#3fb950">$</tspan> !!                       <tspan fill="#d29922"># send the identical request again</tspan></text>
+    <text x="24" y="222" fill="#8b949e">HTTP/1.1 200 OK</text>
+    <text x="24" y="244"><tspan fill="#58a6ff">x-cache:</tspan> <tspan fill="#3fb950">exact</tspan>           <tspan fill="#d29922"># served from cache — zero GPU tokens spent</tspan></text>
+
+    <text x="24" y="288"><tspan fill="#3fb950">$</tspan> ./burst.sh               <tspan fill="#d29922"># 12 concurrent × 8,000-token requests (3× cluster capacity)</tspan></text>
+    <text x="24" y="310">mid-burst: queueDepth = <tspan fill="#d29922">4</tspan></text>
+    <text x="24" y="332">  vllm-0: pendingTokens=<tspan fill="#f85149">32048</tspan>  freeTokens=<tspan fill="#f85149">192</tspan></text>
+    <text x="24" y="354">  vllm-1: pendingTokens=<tspan fill="#f85149">32048</tspan>  freeTokens=<tspan fill="#f85149">192</tspan></text>
+
+    <text x="24" y="398">  <tspan fill="#3fb950">8 × HTTP 200</tspan>   admitted immediately (4 per backend)</text>
+    <text x="24" y="420">  <tspan fill="#3fb950">4 × HTTP 200</tspan>   queued, admitted as capacity freed</text>
+    <text x="24" y="442">  <tspan fill="#3fb950">0 × failures</tspan>   <tspan fill="#3fb950">0 × OOM</tspan></text>
+  </g>
+</svg>

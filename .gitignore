@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.log
+
+# marketing drafts — not part of the public repo
+launch/

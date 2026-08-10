@@ -1,0 +1,74 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      PORT: 8080
+      HOST: 0.0.0.0
+      ADMIN_TOKEN: "${ADMIN_TOKEN:-dev-admin-token}"
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgres://tokenflow:tokenflow@postgres:5432/tokenflow
+      BACKENDS: '[{"name":"vllm-0","url":"http://mock-vllm-0:8000","capacityTokens":32768},{"name":"vllm-1","url":"http://mock-vllm-1:8000","capacityTokens":32768}]'
+      CACHE_ENABLED: "true"
+      SEMANTIC_CACHE_ENABLED: "true"
+      EMBEDDING_URL: http://mock-vllm-0:8000
+      EMBEDDING_MODEL: mock-embed
+      EMBEDDING_DIM: 384
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mock-vllm-0:
+        condition: service_started
+      mock-vllm-1:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    # PM2 cluster mode runs many gateway workers, each with its own pg pool
+    command: ["postgres", "-c", "max_connections=600"]
+    environment:
+      POSTGRES_USER: tokenflow
+      POSTGRES_PASSWORD: tokenflow
+      POSTGRES_DB: tokenflow
+    ports:
+      # 5433 on the host to avoid colliding with a locally installed Postgres
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tokenflow"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  mock-vllm-0:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mock-vllm:/app/mock-vllm:ro
+    command: ["node", "mock-vllm/server.mjs"]
+    environment:
+      PORT: 8000
+      MODEL_NAME: mock-llm
+      TOKEN_DELAY_MS: "${TOKEN_DELAY_MS:-15}"
+    ports:
+      - "127.0.0.1:8001:8000"
+
+  mock-vllm-1:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mock-vllm:/app/mock-vllm:ro
+    command: ["node", "mock-vllm/server.mjs"]
+    environment:
+      PORT: 8000
+      MODEL_NAME: mock-llm
+      TOKEN_DELAY_MS: "${TOKEN_DELAY_MS:-15}"
+    ports:
+      - "127.0.0.1:8002:8000"

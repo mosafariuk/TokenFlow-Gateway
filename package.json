@@ -1,0 +1,33 @@
+{
+  "name": "tokenflow-gateway",
+  "version": "1.0.0",
+  "description": "Token-aware LLM gateway and load balancer for vLLM / TGI backends",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "mock-vllm": "node mock-vllm/server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "ioredis": "^5.4.1",
+    "js-tiktoken": "^1.0.15",
+    "pg": "^8.12.0",
+    "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.6",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
