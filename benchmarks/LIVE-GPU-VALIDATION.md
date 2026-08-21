@@ -56,3 +56,55 @@ engine capacity → admission math allows 30 concurrent.
    over-admit — but clients that set large `max_tokens` and generate short outputs leave GPU
    headroom idle. Mitigations today: realistic `max_tokens` from clients, lower
    `DEFAULT_MAX_TOKENS`. Roadmap: adaptive output budgets from observed completion lengths.
+
+---
+
+# Consumer hardware (24 GB): RTX 3090 — 2026-08-22
+
+Same suite, on the card most of r/LocalLLaMA actually owns.
+
+| | |
+|---|---|
+| GPU | **NVIDIA GeForce RTX 3090, 24,576 MiB** (Vast.ai on-demand, $0.113/hr) |
+| Driver / OS | 580.159.03 / Ubuntu 22.04.5 (`vllm/vllm-openai:latest` image) |
+| Engine | vLLM 0.27.1, `microsoft/Phi-3-mini-4k-instruct`, `--max-model-len 4096 --gpu-memory-utilization 0.90`, default model runner (no workaround needed on bare GPU) |
+| Engine-reported capacity | **`GPU KV cache size: 36,943 tokens`** → `capacityTokens: 36943` (9.02× concurrency at 4,096) |
+| Gateway | v1.0 native, PM2 cluster ×4, Redis + PostgreSQL 14 on the same host |
+
+Operational note: the first model download failed on Hugging Face's Xet transfer path
+(`ConnectionError … xet-read-token`); `HF_HUB_DISABLE_XET=1` falls back to plain HTTP and
+worked first time. Worth knowing for any container-hosted vLLM.
+
+## Verification
+
+| Check | Result |
+|---|---|
+| `MODEL=microsoft/Phi-3-mini-4k-instruct ./scripts/smoke.sh` | **SMOKE OK** — real completion, `x-cache: exact` on repeat, SSE passthrough with vLLM's usage chunk |
+| Telemetry polling | gateway `kvCacheUsage` tracked native `vllm:kv_cache_usage_perc` (peaks 0.081 vs 0.077) |
+
+## Overload burst on the RTX 3090
+
+30 concurrent requests, `max_tokens: 3000` (~3,015 tokens weight) against 36,943 tokens of
+engine capacity → admission math allows **12** concurrent.
+
+| Metric | Value |
+|---|---|
+| Succeeded / failed | **30 / 0** |
+| Queued by gateway | **18** (exactly as computed; peak queue depth 18) |
+| Peak `num_requests_running` at vLLM | **12 — the cap** |
+| Peak Redis reservation ledger | **36,180 / 36,943 tokens (97.9%)** |
+| Queue wait p50 / max | 4.3 s / 9.3 s (30 s budget) |
+| Wall clock | 20.3 s |
+
+## A6000 (48 GB) vs RTX 3090 (24 GB) side by side
+
+| | A6000 48 GB | RTX 3090 24 GB |
+|---|---|---|
+| Engine KV capacity (Phi-3-mini, 4k ctx) | 94,048 tokens | 36,943 tokens |
+| Heavy requests admitted concurrently (3k-token weight) | 30 | 12 |
+| Burst outcome | 40/40, 9 queued, 0 failures | 30/30, 18 queued, 0 failures |
+| Reservation ledger peak vs capacity | 99.4% | 97.9% |
+
+Same gateway, same config shape, one number changed (`capacityTokens`, read from the
+engine's own startup log) — and the admission schedule adapted exactly to the smaller
+card. That is the hardware-agnostic claim, measured.
