@@ -18,7 +18,7 @@ const results = await Promise.all(
         method: "POST",
         headers: { authorization: `Bearer ${KEY}`, "content-type": "application/json" },
         body: JSON.stringify({
-          model: "mock-llm",
+          model: process.env.MODEL ?? "mock-llm",
           temperature: 0.7,
           max_tokens: MAX_TOKENS,
           messages: [{ role: "user", content: `overload burst request number ${i}` }]

@@ -5,3 +5,4 @@ dist/
 
 # marketing drafts — not part of the public repo
 launch/
+.DS_Store

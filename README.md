@@ -150,6 +150,21 @@ pm2 start ecosystem.config.cjs                          # cluster mode, one work
 pm2 save && pm2 startup                                 # survive reboots
 ```
 
+### Pointing at a real vLLM
+
+`docker-compose.live.yml` swaps the mocks for a vLLM server running on the Docker host:
+
+```bash
+# capacity comes straight from vLLM's startup log: "GPU KV cache size: N tokens"
+VLLM_CAPACITY_TOKENS=94048 \
+docker compose -f docker-compose.yml -f docker-compose.live.yml up -d --no-deps redis postgres gateway
+MODEL=microsoft/Phi-3-mini-4k-instruct ./scripts/smoke.sh
+```
+
+Validated against vLLM 0.27.1 + Phi-3-mini on an RTX A6000 — see
+[benchmarks/LIVE-GPU-VALIDATION.md](benchmarks/LIVE-GPU-VALIDATION.md) for the full run,
+including an overload burst queued against the engine's real KV capacity.
+
 Production notes:
 
 - **`capacityTokens` is your most important knob.** Set it from the real deployment:

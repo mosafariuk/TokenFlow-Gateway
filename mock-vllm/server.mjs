@@ -147,6 +147,7 @@ const server = http.createServer(async (req, res) => {
       return res.end(
         `# HELP vllm:gpu_cache_usage_perc GPU KV-cache usage\n` +
         `vllm:gpu_cache_usage_perc ${usage.toFixed(6)}\n` +
+        `vllm:kv_cache_usage_perc ${usage.toFixed(6)}\n` +
         `vllm:num_requests_running ${runningRequests}\n` +
         `vllm:num_requests_waiting 0\n`
       );

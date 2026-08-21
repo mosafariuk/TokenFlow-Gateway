@@ -93,3 +93,18 @@ describe("parseVllmMetrics", () => {
     expect(parseVllmMetrics("not metrics at all")).toEqual({});
   });
 });
+
+describe("parseVllmMetrics — modern vLLM (0.27+) metric names", () => {
+  it("reads the renamed kv_cache_usage_perc gauge with engine/model labels", () => {
+    const text = [
+      'vllm:num_requests_running{engine="0",model_name="microsoft/Phi-3-mini-4k-instruct"} 2.0',
+      'vllm:num_requests_waiting{engine="0",model_name="microsoft/Phi-3-mini-4k-instruct"} 5.0',
+      'vllm:num_requests_waiting_by_reason{engine="0",model_name="m",reason="capacity"} 5.0',
+      'vllm:kv_cache_usage_perc{engine="0",model_name="microsoft/Phi-3-mini-4k-instruct"} 0.3125'
+    ].join("\n");
+    const m = parseVllmMetrics(text);
+    expect(m.kvCacheUsage).toBeCloseTo(0.3125);
+    expect(m.runningRequests).toBe(2);
+    expect(m.waitingRequests).toBe(5);
+  });
+});

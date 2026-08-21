@@ -36,7 +36,10 @@ export function parseVllmMetrics(text: string): {
     const name = line.slice(0, sp);
     const value = Number(line.slice(sp + 1));
     if (!Number.isFinite(value)) continue;
-    if (name.startsWith("vllm:gpu_cache_usage_perc")) out.kvCacheUsage = value;
+    // vLLM renamed this gauge (gpu_cache_usage_perc → kv_cache_usage_perc in 0.2x); accept both.
+    if (name.startsWith("vllm:kv_cache_usage_perc") || name.startsWith("vllm:gpu_cache_usage_perc")) {
+      out.kvCacheUsage = value;
+    }
     else if (name.startsWith("vllm:num_requests_running")) out.runningRequests = value;
     else if (name.startsWith("vllm:num_requests_waiting")) out.waitingRequests = value;
   }

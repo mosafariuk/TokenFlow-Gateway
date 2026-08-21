@@ -1,0 +1,16 @@
+# Override: point the gateway at a REAL vLLM server running on the Docker host
+# (instead of the bundled mocks). Usage:
+#
+#   VLLM_MODEL=microsoft/Phi-3-mini-4k-instruct VLLM_CAPACITY_TOKENS=94048 \
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml up -d --no-deps redis postgres gateway
+#
+# Set VLLM_CAPACITY_TOKENS from vLLM's startup log line "GPU KV cache size: N tokens".
+# Semantic cache is disabled because a chat model doesn't serve /v1/embeddings;
+# point EMBEDDING_URL at an embedding-serving vLLM to re-enable it.
+services:
+  gateway:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      BACKENDS: '[{"name":"vllm-live","url":"http://${VLLM_HOST:-host.docker.internal}:${VLLM_PORT:-8000}","capacityTokens":${VLLM_CAPACITY_TOKENS:-32768}}]'
+      SEMANTIC_CACHE_ENABLED: "false"

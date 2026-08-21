@@ -3,6 +3,7 @@
 set -euo pipefail
 
 GATEWAY="${GATEWAY:-http://localhost:8080}"
+MODEL="${MODEL:-mock-llm}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-dev-admin-token}"
 
 echo "==> health"
@@ -20,21 +21,21 @@ echo "==> non-streaming chat completion"
 curl -fsS -X POST "$GATEWAY/v1/chat/completions" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"mock-llm","messages":[{"role":"user","content":"What is a token-aware gateway?"}],"max_tokens":32,"temperature":0}' \
+  -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"What is a token-aware gateway?"}],"max_tokens":32,"temperature":0}' \
   | python3 -m json.tool | head -20
 
 echo "==> repeat same request (expect x-cache: exact)"
 curl -fsS -D - -o /dev/null -X POST "$GATEWAY/v1/chat/completions" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"mock-llm","messages":[{"role":"user","content":"What is a token-aware gateway?"}],"max_tokens":32,"temperature":0}' \
+  -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"What is a token-aware gateway?"}],"max_tokens":32,"temperature":0}' \
   | grep -i -E "^(x-cache|x-backend|x-ratelimit)"
 
 echo "==> streaming completion (first lines)"
 STREAM=$(curl -fsS -N -X POST "$GATEWAY/v1/chat/completions" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"mock-llm","messages":[{"role":"user","content":"stream me"}],"max_tokens":16,"stream":true}')
+  -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"stream me"}],"max_tokens":16,"stream":true}')
 echo "$STREAM" | head -5
 echo "$STREAM" | tail -3
 
