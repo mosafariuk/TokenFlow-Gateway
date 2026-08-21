@@ -12,6 +12,7 @@ function backend(name: string, kvCacheUsage: number, opts: Partial<BackendState>
     runningRequests: 0,
     waitingRequests: 0,
     lastPolledAt: 0,
+    consecutiveFailures: 0,
     ...opts
   };
 }

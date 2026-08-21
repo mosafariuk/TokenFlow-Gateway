@@ -24,7 +24,13 @@ export function buildServer(redis: Redis): { app: FastifyInstance; ctx: GatewayC
   });
 
   const ctx: GatewayContext = {
-    registry: new BackendRegistry(config.backends, config.backendPollIntervalMs),
+    registry: new BackendRegistry(config.backends, config.backendPollIntervalMs, {
+      retries: config.backendPollRetries,
+      backoffMs: config.backendPollBackoffMs,
+      jitterMs: config.backendPollJitterMs,
+      requestTimeoutMs: config.backendPollTimeoutMs,
+      failureThreshold: config.backendFailureThreshold
+    }),
     queue: new AdmissionQueue(redis),
     rateLimiter: new RateLimiter(redis),
     cache: new ResponseCache(redis),

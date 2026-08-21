@@ -190,6 +190,9 @@ Production notes:
 | `DATABASE_URL` | `postgres://…:5432/tokenflow` | Keys, request logs, semantic cache |
 | `BACKENDS` | — | JSON array `[{"name","url","capacityTokens"}]` — `capacityTokens` ≈ backend KV-cache size in tokens |
 | `BACKEND_POLL_INTERVAL_MS` | `1000` | Metrics/health poll cadence |
+| `BACKEND_POLL_RETRIES` / `BACKEND_POLL_BACKOFF_MS` / `BACKEND_POLL_JITTER_MS` | `2` / `100` / `100` | Retries per poll with exponential backoff + random jitter, so a transient timeout never drops a backend |
+| `BACKEND_POLL_TIMEOUT_MS` | `2000` | Per-request timeout for `/metrics` and `/health` |
+| `BACKEND_FAILURE_THRESHOLD` | `3` | Consecutive fully-failed polls before a backend leaves the routing pool |
 | `HEAVY_PROMPT_THRESHOLD` | `2048` | Weight at which a request routes to the *freest* backend instead of bin-packing |
 | `DEFAULT_MAX_TOKENS` | `1024` | Output budget assumed when `max_tokens` is absent |
 | `QUEUE_TIMEOUT_MS` | `30000` | Max queue wait before `503` |
