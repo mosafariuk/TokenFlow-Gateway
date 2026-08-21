@@ -48,6 +48,11 @@ export const config = {
 
   backends: parseBackends(process.env.BACKENDS),
   backendPollIntervalMs: num("BACKEND_POLL_INTERVAL_MS", 1000),
+  backendPollRetries: num("BACKEND_POLL_RETRIES", 2),
+  backendPollBackoffMs: num("BACKEND_POLL_BACKOFF_MS", 100),
+  backendPollJitterMs: num("BACKEND_POLL_JITTER_MS", 100),
+  backendPollTimeoutMs: num("BACKEND_POLL_TIMEOUT_MS", 2000),
+  backendFailureThreshold: num("BACKEND_FAILURE_THRESHOLD", 3),
 
   heavyPromptThreshold: num("HEAVY_PROMPT_THRESHOLD", 2048),
   defaultMaxTokens: num("DEFAULT_MAX_TOKENS", 1024),
