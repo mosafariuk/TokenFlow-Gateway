@@ -50,7 +50,7 @@ caps concurrent heavy requests at **16 per backend**.
 | Wall clock | 17.0 s (waves draining) | 2.1 s (herd, no control) | 15.2 s |
 
 The pre-fix cluster forwarded ~402k tokens of KV demand into a 32,768-token backend at
-once — the exact OOM scenario the gateway exists to prevent, hidden behind a healthy
+once — the latency-cliff / preemption-churn overload the gateway exists to prevent, hidden behind a healthy
 "200/200". v1.0's atomic check-and-reserve makes 48 concurrent workers produce the
 same admission schedule as one process. Reservations carry a TTL
 (`RESERVATION_TTL_SECONDS`, default 120 s) as a crash backstop; an orphaned
