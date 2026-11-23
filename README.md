@@ -5,6 +5,8 @@ front of vLLM / Hugging Face TGI (or anything OpenAI-compatible), weighs every r
 in tokens *before* it reaches a GPU, and routes, queues, caches, and rate-limits by the
 one resource that actually takes inference servers down: **KV-cache capacity**.
 
+> **Write-up:** [TokenFlow Gateway — KV-cache-aware LLM admission](https://aioapex.com/en/research/tokenflow-gateway) (design, admission script, benchmarks, comparison with llm-d / Dynamo / LiteLLM)
+
 ![TokenFlow demo: cache hits, KV-aware routing, and queueing under a 3× overload burst](assets/demo.svg)
 
 ## The bottleneck
@@ -12,8 +14,8 @@ one resource that actually takes inference servers down: **KV-cache capacity**.
 Nginx and HAProxy count *connections*. A GPU running vLLM doesn't run out of
 connections — it runs out of KV-cache. To a classic proxy, a 10-token prompt and a
 10,000-token prompt are the same "request", so a burst of long-context traffic sails
-straight through round-robin load balancing and lands as an OOM, a latency cliff, or a
-crashed inference engine — while the proxy reports everything green.
+straight through round-robin load balancing and lands as latency cliffs and preemption
+churn — while the proxy reports everything green.
 
 TokenFlow closes that gap with four moves:
 
